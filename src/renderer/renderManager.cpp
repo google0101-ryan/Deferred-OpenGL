@@ -116,16 +116,12 @@ void RenderManager::Render()
 
     dirShadowShader->SetUniformMat4x4("VP", lightSpaceMatrix);
 
-    glViewport(0, 0, 512, 2049);
-
     for (int i = 0; i < 9; i++)
     {
         cube.ResetPosition();
         cube.Move(cubePositions[i]);
         cube.Draw(dirShadowShader);
     }
-
-    glViewport(0, 0, 1024, 768);
 
     plane.Draw(dirShadowShader);
     
@@ -177,40 +173,38 @@ void RenderManager::Render()
 
     glDisable(GL_DEPTH_TEST);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, renderFBO.texColorBuffers[0]);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, renderFBO.texColorBuffers[1]);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, dirShadowFBO.depthBuffer);
-
-    dirLightShader->Bind();
-    dirLightShader->SetUniformInt("lightID", 0);
-    dirLightShader->SetUniformMat4x4("lightSpaceMatrix", lightSpaceMatrix);
-    
-    glBindVertexArray(screenVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-
     // glActiveTexture(GL_TEXTURE0);
     // glBindTexture(GL_TEXTURE_2D, renderFBO.texColorBuffers[0]);
     // glActiveTexture(GL_TEXTURE1);
     // glBindTexture(GL_TEXTURE_2D, renderFBO.texColorBuffers[1]);
     // glActiveTexture(GL_TEXTURE2);
-    // glBindTexture(GL_TEXTURE_2D, renderFBO.texColorBuffers[2]);
-    // glActiveTexture(GL_TEXTURE3);
-    // glBindTexture(GL_TEXTURE_3D, dirShadowFBO.depthBuffer);
+    // glBindTexture(GL_TEXTURE_2D, dirShadowFBO.depthBuffer);
+
+    // dirLightShader->Bind();
+    // dirLightShader->SetUniformMat4x4("lightSpaceMatrix", lightSpaceMatrix);
     
-    // for (int i = 0; i < sizeof(pointLights) / sizeof(Light); i++)
-    // {
-    //     pointLightShader->Bind();
-    //     pointLightShader->SetUniformInt("lightID", i+1);
-    //     pointLightShader->SetUniformMat4x4("lightSpaceMatrix", lightSpaceMatrix);
-    //     pointLightShader->SetUniformVec3("light.Position", pointLights[i].pos);
-    //     pointLightShader->SetUniformVec3("light.Color", pointLights[i].color);
-    //     // Draw the buffer to the screen
-    //     glBindVertexArray(screenVAO);
-    //     glDrawArrays(GL_TRIANGLES, 0, 6);
-    // }
+    // glBindVertexArray(screenVAO);
+    // glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, renderFBO.texColorBuffers[0]);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, renderFBO.texColorBuffers[1]);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, renderFBO.texColorBuffers[2]);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, dirShadowFBO.depthBuffer);
+    
+    for (int i = 0; i < sizeof(pointLights) / sizeof(Light); i++)
+    {
+        pointLightShader->Bind();
+        pointLightShader->SetUniformMat4x4("lightSpaceMatrix", lightSpaceMatrix);
+        pointLightShader->SetUniformVec3("light.Position", pointLights[i].pos);
+        pointLightShader->SetUniformVec3("light.Color", pointLights[i].color);
+        // Draw the buffer to the screen
+        glBindVertexArray(screenVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
 
     glDisable(GL_BLEND);
 }
@@ -218,7 +212,7 @@ void RenderManager::Render()
 bool RenderManager::initFBOs()
 {
     // This should be enough to hold up to 32 512x2049 shadow maps (we'll need to aggressively cull lights to meet this)
-    dirShadowFBO.SetupFramebuffer(4096, 8196);
+    dirShadowFBO.SetupFramebuffer(1024, 1024);
 
     renderFBO.width = 1024;
     renderFBO.height = 768;

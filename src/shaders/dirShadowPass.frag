@@ -6,9 +6,7 @@ out vec4 FragColor;
 
 uniform sampler2D colorBuffer;
 uniform sampler2D positionBuffer;
-uniform sampler2DArray shadowMap;
-
-uniform int lightID; // Light 0 is reserved for the global directional light
+uniform sampler2D shadowMap;
 
 uniform mat4 lightSpaceMatrix;
 
@@ -16,7 +14,7 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
-    float closestDepth = texture(shadowMap, vec3(projCoords.xy, lightID)).r;
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
     float currentDepth = projCoords.z;
     float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
     return shadow;
