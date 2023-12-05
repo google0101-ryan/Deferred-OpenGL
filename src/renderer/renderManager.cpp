@@ -17,7 +17,7 @@ struct Light
     glm::vec3 color;
 };
 
-Light pointLights[1] =
+Light pointLights[3] =
 {
     {{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
 };
