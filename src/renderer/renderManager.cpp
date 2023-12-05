@@ -1,4 +1,5 @@
 #include "renderManager.h"
+#include <GLFW/glfw3.h>
 
 float ScreenQuad[] = 
 {
@@ -19,7 +20,7 @@ struct Light
 
 Light pointLights[3] =
 {
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+    {{0.0f, 0.0f, 0.0f}, {0.5f, 0.5f, 0.5f}},
 };
 
 GLuint screenVAO, screenVBO;
@@ -32,7 +33,7 @@ bool RenderManager::startUp()
 
     srand(13);
 
-    plane.Move(glm::vec3(0.0f, -2.0f, 0.0f));
+    plane.Move(glm::vec3(0.0f, -1.0f, 0.0f));
     plane.Scale(glm::vec3(10.0f, 0.0f, 10.0f));
 
     dirShadowShader = std::make_unique<Shader>("shadowShader");
@@ -73,10 +74,6 @@ bool RenderManager::startUp()
         float y = static_cast<float>(((rand() % 100) / 100.0) * 6.0 - 4.0);
         float z = static_cast<float>(((rand() % 100) / 100.0) * 6.0 - 3.0);
         pointLights[i].pos = glm::vec3(x, y, z);
-        float rColor = static_cast<float>(((rand() % 100) / 200.0f) + 0.5); // between 0.5 and 1.0
-        float gColor = static_cast<float>(((rand() % 100) / 200.0f) + 0.5); // between 0.5 and 1.0
-        float bColor = static_cast<float>(((rand() % 100) / 200.0f) + 0.5); // between 0.5 and 1.0
-        pointLights[i].color = glm::vec3(rColor, gColor, bColor);
     }
 
     return true;
@@ -86,6 +83,10 @@ glm::vec3 playerPos = glm::vec3(-2.0f, 10.0f, 6.0f);
 
 void RenderManager::Render()
 {
+    // pointLights[0].color.r = sin(glfwGetTime() * 2.0f);
+    // pointLights[0].color.g = sin(glfwGetTime() * 0.7f);
+    // pointLights[0].color.b = sin(glfwGetTime() * 1.3f);
+
     glEnable(GL_DEPTH_TEST);
     glDepthMask(true);
     glDepthFunc(GL_LESS);
@@ -194,6 +195,8 @@ void RenderManager::Render()
     glBindTexture(GL_TEXTURE_2D, renderFBO.texColorBuffers[2]);
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, dirShadowFBO.depthBuffer);
+
+    pointLightShader->SetUniformVec3("viewPos", playerPos);
     
     for (int i = 0; i < sizeof(pointLights) / sizeof(Light); i++)
     {

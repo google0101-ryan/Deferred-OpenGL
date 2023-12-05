@@ -13,9 +13,12 @@ out vec3 Normal;
 
 void main()
 {
-    gl_Position = VP * M * vec4(aPos, 1.0);
+    vec4 worldPos = M * vec4(aPos, 1.0);
+    WorldPos = worldPos.xyz;
     Color = aColor;
-    WorldPos = vec3(M * vec4(aPos, 1.0));
-    mat3 normMatrix = transpose(inverse(mat3(M)));
-    Normal = normMatrix * aNormal;
+
+    mat3 normalMatrix = transpose(inverse(mat3(M)));
+    Normal = normalMatrix * aNormal;
+
+    gl_Position = VP * worldPos;
 }
