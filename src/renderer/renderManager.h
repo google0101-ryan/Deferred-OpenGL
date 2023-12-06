@@ -14,6 +14,7 @@ public:
 private:
     bool initFBOs();
 private:
+    bool shadowMapDirty = true;
     DirShadowBuffer dirShadowFBO;
     Framebuffer renderFBO;
     ShaderPtr dirShadowShader, depthShader, colorShader, pointLightShader, dirLightShader;

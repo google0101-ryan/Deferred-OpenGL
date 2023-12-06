@@ -48,5 +48,5 @@ void Plane::Draw(ShaderPtr& shader)
     shader->SetUniformMat4x4("M", model);
 
     glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }

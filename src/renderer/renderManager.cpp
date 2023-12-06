@@ -18,7 +18,7 @@ struct Light
     glm::vec3 color;
 };
 
-Light pointLights[3] =
+Light pointLights[1] =
 {
     {{0.0f, 0.0f, 0.0f}, {0.5f, 0.5f, 0.5f}},
 };
@@ -74,6 +74,10 @@ bool RenderManager::startUp()
         float y = static_cast<float>(((rand() % 100) / 100.0) * 6.0 - 4.0);
         float z = static_cast<float>(((rand() % 100) / 100.0) * 6.0 - 3.0);
         pointLights[i].pos = glm::vec3(x, y, z);
+        float rColor = static_cast<float>(((rand() % 100) / 200.0f) + 0.5); // between 0.5 and 1.0
+        float gColor = static_cast<float>(((rand() % 100) / 200.0f) + 0.5); // between 0.5 and 1.0
+        float bColor = static_cast<float>(((rand() % 100) / 200.0f) + 0.5); // between 0.5 and 1.0
+        pointLights[i].color = glm::vec3(rColor, gColor, bColor);
     }
 
     return true;
@@ -83,13 +87,10 @@ glm::vec3 playerPos = glm::vec3(-2.0f, 10.0f, 6.0f);
 
 void RenderManager::Render()
 {
-    // pointLights[0].color.r = sin(glfwGetTime() * 2.0f);
-    // pointLights[0].color.g = sin(glfwGetTime() * 0.7f);
-    // pointLights[0].color.b = sin(glfwGetTime() * 1.3f);
-
     glEnable(GL_DEPTH_TEST);
     glDepthMask(true);
     glDepthFunc(GL_LESS);
+    glDisable(GL_CULL_FACE);
 
     // Directional light shadow map pass
 
@@ -104,27 +105,32 @@ void RenderManager::Render()
         glm::vec3(0.0, -0.5, 3.0),
         glm::vec3(3.0, -0.5f, 3.0),
     };
-    
-    dirShadowFBO.Bind();
-    dirShadowFBO.Clear(GL_DEPTH_BUFFER_BIT, glm::vec3(1.0f));
-    dirShadowShader->Bind();
 
-    glm::mat4 shadowProj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f);
-    glm::mat4 lightView = glm::lookAt(glm::vec3(2.0f, 4.0f, 1.0f), 
-                                     glm::vec3(0.0f, 0.0f, 0.0f),
-                                     glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 shadowProj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 10.0f);
+    glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f),
+                                    glm::vec3(0.0f, 0.0f, 0.0f),
+                                    glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 lightSpaceMatrix = shadowProj * lightView;
-
-    dirShadowShader->SetUniformMat4x4("VP", lightSpaceMatrix);
-
-    for (int i = 0; i < 9; i++)
+    
+    if (shadowMapDirty)
     {
-        cube.ResetPosition();
-        cube.Move(cubePositions[i]);
-        cube.Draw(dirShadowShader);
-    }
+        dirShadowFBO.Bind();
+        dirShadowFBO.Clear(GL_DEPTH_BUFFER_BIT, glm::vec3(1.0f));
+        dirShadowShader->Bind();
 
-    plane.Draw(dirShadowShader);
+        dirShadowShader->SetUniformMat4x4("VP", lightSpaceMatrix);
+
+        for (int i = 0; i < 9; i++)
+        {
+            cube.ResetPosition();
+            cube.Move(cubePositions[i]);
+            cube.Scale(glm::vec3(0.25));
+            cube.Draw(dirShadowShader);
+        }
+        shadowMapDirty = false;
+
+        plane.Draw(dirShadowShader);
+    }
     
     // Depth-only pass
     renderFBO.Bind();
@@ -139,6 +145,7 @@ void RenderManager::Render()
     {
         cube.ResetPosition();
         cube.Move(cubePositions[i]);
+        cube.Scale(glm::vec3(0.25));
         cube.Draw(depthShader);
     }
 
@@ -156,6 +163,7 @@ void RenderManager::Render()
     {
         cube.ResetPosition();
         cube.Move(cubePositions[i]);
+        cube.Scale(glm::vec3(0.25));
         cube.Draw(colorShader);
     }
 
@@ -214,8 +222,7 @@ void RenderManager::Render()
 
 bool RenderManager::initFBOs()
 {
-    // This should be enough to hold up to 32 512x2049 shadow maps (we'll need to aggressively cull lights to meet this)
-    dirShadowFBO.SetupFramebuffer(1024, 1024);
+    dirShadowFBO.SetupFramebuffer(4096, 4096);
 
     renderFBO.width = 1024;
     renderFBO.height = 768;
